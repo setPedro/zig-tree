@@ -1,9 +1,13 @@
 const std = @import("std");
 
+/// A simple program to display the folder and file structure of a directory in a readable way
 pub fn main() !void {
-    var args_iterator = std.process.args();
+    const cwd = std.fs.cwd();
+    var dir = try cwd.openDir(".", .{});
+    defer dir.close();
 
-    while (args_iterator.next()) |arg| {
-        std.debug.print("Hello, {s}!\n", .{arg});
+    var iterator = dir.iterate();
+    while (try iterator.next()) |entry| {
+        std.debug.print("{s}\n", .{entry.name});
     }
 }
