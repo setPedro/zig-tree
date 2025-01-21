@@ -15,9 +15,13 @@ fn iterateDir(path: []const u8) !void {
         const kind = entry.kind;
 
         if (kind == std.fs.File.Kind.directory and entry.name[0] != '.') {
-            std.debug.print("I'M A DIRECTORY: {s}\n", .{entry.name});
-        }
+            const max_len = 264;
+            var buf: [max_len]u8 = undefined;
 
-        std.debug.print("{s}\n", .{entry.name});
+            const len = try std.fmt.bufPrint(&buf, "./{s}", .{entry.name});
+            std.debug.print("dir: {s}\n", .{entry.name});
+            const _path = buf[0..len.len];
+            std.debug.print("PATH: {s}\n", .{_path});
+        }
     }
 }
