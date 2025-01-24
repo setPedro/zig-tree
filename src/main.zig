@@ -19,14 +19,16 @@ fn iterateDir(allocator: std.mem.Allocator, path: []const u8) !void {
         if (entry.name[0] == '.') continue;
 
         if (entry.kind == .directory) {
-            std.debug.print("dir: {s}\n", .{entry.name});
-
-            const _path = try std.mem.concat(allocator, u8, &[_][]const u8{ path, "/", entry.name });
+            const _path = try std.fs.path.join(allocator, &.{ path, entry.name });
 
             defer allocator.free(_path);
             std.debug.print("PATH: {s}\n", .{_path});
 
             try iterateDir(allocator, _path);
+        }
+
+        if (entry.kind == .file) {
+            std.debug.print("   {s}\n", .{entry.name});
         }
     }
 }
