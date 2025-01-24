@@ -2,26 +2,31 @@ const std = @import("std");
 
 /// A simple program to display the folder and file structure of a directory in a readable way
 pub fn main() !void {
-    try iterateDir(".");
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    defer _ = gpa.deinit();
+
+    try iterateDir(allocator, ".");
 }
 
-fn iterateDir(path: []const u8) !void {
+fn iterateDir(allocator: std.mem.Allocator, path: []const u8) !void {
     const cwd = std.fs.cwd();
     var dir = try cwd.openDir(path, .{});
     defer dir.close();
 
     var iterator = dir.iterate();
     while (try iterator.next()) |entry| {
-        const kind = entry.kind;
+        if (entry.name[0] == '.') continue;
 
-        if (kind == std.fs.File.Kind.directory and entry.name[0] != '.') {
-            const max_len = 264;
-            var buf: [max_len]u8 = undefined;
-
-            const len = try std.fmt.bufPrint(&buf, "./{s}", .{entry.name});
+        if (entry.kind == .directory) {
             std.debug.print("dir: {s}\n", .{entry.name});
-            const _path = buf[0..len.len];
+
+            const _path = try std.mem.concat(allocator, u8, &[_][]const u8{ path, "/", entry.name });
+
+            defer allocator.free(_path);
             std.debug.print("PATH: {s}\n", .{_path});
+
+            try iterateDir(allocator, _path);
         }
     }
 }
