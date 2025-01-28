@@ -1,8 +1,8 @@
 const std = @import("std");
 
-const DIR_ENTRY = "├──";
-const DIR_GAP = "|  ";
-const FILE_ENTRY = "└──";
+const DIR_ENTRY = "├── ";
+const DIR_GAP = "│   ";
+const FILE_ENTRY = "└── ";
 
 /// A simple program to display the folder and file structure of a directory in a readable way
 pub fn main() !void {
@@ -32,16 +32,16 @@ fn iterateDir(allocator: std.mem.Allocator, path: []const u8) !void {
     for (entries.items) |entry| {
         if (entry.kind == .directory) {
             const _path = try std.fs.path.join(allocator, &.{ path, entry.name });
-
             defer allocator.free(_path);
 
             const result = try formatPath(_path);
             const indent_level = result[0];
             const formatted_path = result[1];
-            _ = indent_level;
-            _ = formatted_path;
 
-            std.debug.print("{s}\n", .{_path});
+            const gap = try repeatString(allocator, DIR_GAP, (indent_level - 2));
+            defer allocator.free(gap);
+
+            std.debug.print("{s}{s}{s}\n", .{ gap, DIR_ENTRY, formatted_path });
 
             try iterateDir(allocator, _path);
         }
@@ -71,4 +71,15 @@ fn formatPath(path: []u8) !struct { u8, []u8 } {
     }
 
     return .{ level, formatted_path };
+}
+
+fn repeatString(allocator: std.mem.Allocator, string: []const u8, multiplier: usize) ![]const u8 {
+    var result = std.ArrayList(u8).init(allocator);
+    defer result.deinit();
+
+    for (0..multiplier) |_| {
+        try result.appendSlice(string);
+    }
+
+    return result.toOwnedSlice();
 }
