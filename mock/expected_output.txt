@@ -1,0 +1,8 @@
+mock/
+├── somedir/
+│   ├── anotherDir2/
+│   │   └── file
+│   ├── dir2/
+│   │   └── file
+│   └── somefile
+└── expected_output.txt
