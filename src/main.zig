@@ -30,24 +30,24 @@ fn iterateDir(allocator: std.mem.Allocator, path: []const u8) !void {
     std.mem.sort(std.fs.Dir.Entry, entries.items, {}, lessThan);
 
     for (entries.items) |entry| {
+        const _path = try std.fs.path.join(allocator, &.{ path, entry.name });
+        defer allocator.free(_path);
+
+        const result = try formatPath(_path);
+        const indent_level = result[0];
+        const formatted_path = result[1];
+
+        const gap = try repeatString(allocator, DIR_GAP, (indent_level - 2));
+        defer allocator.free(gap);
+
         if (entry.kind == .directory) {
-            const _path = try std.fs.path.join(allocator, &.{ path, entry.name });
-            defer allocator.free(_path);
-
-            const result = try formatPath(_path);
-            const indent_level = result[0];
-            const formatted_path = result[1];
-
-            const gap = try repeatString(allocator, DIR_GAP, (indent_level - 2));
-            defer allocator.free(gap);
-
             std.debug.print("{s}{s}{s}\n", .{ gap, DIR_ENTRY, formatted_path });
 
             try iterateDir(allocator, _path);
         }
 
         if (entry.kind == .file) {
-            std.debug.print("   {s}\n", .{entry.name});
+            std.debug.print("{s}{s}{s}\n", .{ gap, FILE_ENTRY, formatted_path });
         }
     }
 }
