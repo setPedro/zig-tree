@@ -33,21 +33,20 @@ fn iterateDir(allocator: std.mem.Allocator, path: []const u8) !void {
         const _path = try std.fs.path.join(allocator, &.{ path, entry.name });
         defer allocator.free(_path);
 
-        const result = try formatPath(_path);
-        const indent_level = result[0];
-        const formatted_path = result[1];
+        const indent_level = try countPathDepth(_path);
 
+        // TODO: dynamically calculate the correct indentation level, accounting for the current depth
         const gap = try repeatString(allocator, DIR_GAP, (indent_level - 2));
         defer allocator.free(gap);
 
+        const entry_symbol = if (entry.kind == .directory) DIR_ENTRY else FILE_ENTRY;
+        const name_with_suffix = if (entry.kind == .directory) try std.fmt.allocPrint(allocator, "{s}/", .{entry.name}) else entry.name;
+        defer if (entry.kind == .directory) allocator.free(name_with_suffix);
+
+        std.debug.print("{s}{s}{s}\n", .{ gap, entry_symbol, name_with_suffix });
+
         if (entry.kind == .directory) {
-            std.debug.print("{s}{s}{s}\n", .{ gap, DIR_ENTRY, formatted_path });
-
             try iterateDir(allocator, _path);
-        }
-
-        if (entry.kind == .file) {
-            std.debug.print("{s}{s}{s}\n", .{ gap, FILE_ENTRY, formatted_path });
         }
     }
 }
@@ -60,17 +59,16 @@ fn lessThan(_: void, lhs: std.fs.Dir.Entry, rhs: std.fs.Dir.Entry) bool {
     return std.mem.lessThan(u8, lhs.name, rhs.name);
 }
 
-fn formatPath(path: []u8) !struct { u8, []u8 } {
+/// Counts the number of `/` and returns nesting level
+fn countPathDepth(path: []u8) !u8 {
     var level: u8 = 0;
-    var formatted_path: []u8 = "";
-    for (path, 0..) |char, i| {
+    for (path) |char| {
         if (char == '/') {
-            formatted_path = path[i + 1 ..];
             level += 1;
         }
     }
 
-    return .{ level, formatted_path };
+    return level;
 }
 
 fn repeatString(allocator: std.mem.Allocator, string: []const u8, multiplier: usize) ![]const u8 {
