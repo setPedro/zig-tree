@@ -10,7 +10,16 @@ pub fn main() !void {
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
-    try iterateDir(allocator, "./mock");
+    // Get command line arguments
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+
+    // Use provided path or default to current directory
+    const path = if (args.len > 1) args[1] else ".";
+
+    // Start with an empty line for cleaner output
+    std.debug.print("\n", .{});
+    try iterateDir(allocator, path);
 }
 
 fn iterateDir(allocator: std.mem.Allocator, path: []const u8) !void {
@@ -36,7 +45,7 @@ fn iterateDir(allocator: std.mem.Allocator, path: []const u8) !void {
         const indent_level = try countPathDepth(_path);
 
         // TODO: dynamically calculate the correct indentation level, accounting for the current depth
-        const gap = try repeatString(allocator, DIR_GAP, (indent_level - 2));
+        const gap = try repeatString(allocator, DIR_GAP, (indent_level - 1));
         defer allocator.free(gap);
 
         const entry_symbol = if (entry.kind == .directory) DIR_ENTRY else FILE_ENTRY;
