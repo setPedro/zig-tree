@@ -4,4 +4,4 @@ build.zig.zon
 .zig-cache/
 zig-out/
 
-src/ztree.o
+ztree.o

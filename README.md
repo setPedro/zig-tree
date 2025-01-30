@@ -15,10 +15,8 @@ Build and install:
 
 ### Unix-like Systems
 
-Just run these three commands in the `src` directory:
-
 ```sh
-zig build-exe main.zig -O ReleaseSmall --name ztree
+zig build-exe src/main.zig -O ReleaseSmall --name ztree
 sudo mv ztree /usr/local/bin/
 sudo chmod +x /usr/local/bin/ztree
 ```
@@ -31,10 +29,8 @@ These commands:
 
 ### Windows
 
-Run this command in the `src` directory:
-
 ```sh
-zig build-exe main.zig -O ReleaseSmall --name ztree.exe
+zig build-exe src/main.zig -O ReleaseSmall --name ztree.exe
 ```
 
 After building, either:
