@@ -8,9 +8,13 @@ First, clone the repository:
 ```sh
 git clone https://github.com/setPedro/zig-tree.git
 cd zig-tree
-````
+```
 
-Then, build and install. Just run these three commands in the `src` directory:
+Then, build and install:
+
+### Unix-like Systems
+
+Just run these three commands in the `src` directory:
 
 ```sh
 zig build-exe main.zig -O ReleaseSmall --name ztree
@@ -23,7 +27,20 @@ These commands:
 2. Move it to a system-wide directory (/usr/local/bin/)  
 3. Make it executable  
 
-Once installed, you can use `ztree` from anywhere.
+### Windows
+
+Run this command in the `src` directory:
+
+```sh
+zig build-exe main.zig -O ReleaseSmall --name ztree.exe
+```
+
+After building, either:
+
+1. Move `ztree.exe` to a directory in your system PATH
+2. Or add the directory containing `ztree.exe` to your PATH environment variable
+---
+Once installed, you can use `ztree` from anywhere. 
 
 ## Usage  
 
