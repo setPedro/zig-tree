@@ -10,15 +10,13 @@ git clone https://github.com/setPedro/zig-tree.git
 cd zig-tree
 ````
 
-Then, build and install:
+Then, build and install. Just run these three commands in the `src` directory:
 
 ```sh
 zig build-exe main.zig -O ReleaseSmall --name ztree
 sudo mv ztree /usr/local/bin/
 sudo chmod +x /usr/local/bin/ztree
 ```
-
-Just run these three commands in the `src` directory.
 
 These commands:
 1. Compile your program into an executable named ztree  
