@@ -17,19 +17,16 @@ pub fn main() !void {
     // Use provided path or default to current directory
     const path = if (args.len > 1) args[1] else ".";
 
-    // Get the base depth to offset all future depth calculations
-    const base_depth = try countPathDepth(path);
-
-    // Start with an empty line for cleaner output
-    std.debug.print("\n", .{});
-    try iterateDir(allocator, path, base_depth);
-}
-
-fn iterateDir(allocator: std.mem.Allocator, path: []const u8, base_depth: usize) !void {
     const cwd = std.fs.cwd();
-    var dir = try cwd.openDir(path, .{});
+    var dir = try cwd.openDir(path, .{ .iterate = true });
     defer dir.close();
 
+    std.debug.print("\n", .{});
+
+    try iterateDir(allocator, dir, 0);
+}
+
+fn iterateDir(allocator: std.mem.Allocator, dir: std.fs.Dir, depth: usize) !void {
     var entries = std.ArrayList(std.fs.Dir.Entry).init(allocator);
     defer entries.deinit();
 
@@ -42,13 +39,7 @@ fn iterateDir(allocator: std.mem.Allocator, path: []const u8, base_depth: usize)
     std.mem.sort(std.fs.Dir.Entry, entries.items, {}, lessThan);
 
     for (entries.items) |entry| {
-        const _path = try std.fs.path.join(allocator, &.{ path, entry.name });
-        defer allocator.free(_path);
-
-        const current_depth = try countPathDepth(_path);
-        const relative_depth = current_depth -| base_depth - 1;
-
-        const gap = try repeatString(allocator, DIR_GAP, relative_depth);
+        const gap = try repeatString(allocator, DIR_GAP, depth);
         defer allocator.free(gap);
 
         const entry_symbol = if (entry.kind == .directory) DIR_ENTRY else FILE_ENTRY;
@@ -58,7 +49,9 @@ fn iterateDir(allocator: std.mem.Allocator, path: []const u8, base_depth: usize)
         std.debug.print("{s}{s}{s}\n", .{ gap, entry_symbol, name_with_suffix });
 
         if (entry.kind == .directory) {
-            try iterateDir(allocator, _path, base_depth);
+            var subdir = try dir.openDir(entry.name, .{});
+            defer subdir.close();
+            try iterateDir(allocator, subdir, depth + 1);
         }
     }
 }
@@ -69,18 +62,6 @@ fn lessThan(_: void, lhs: std.fs.Dir.Entry, rhs: std.fs.Dir.Entry) bool {
     }
 
     return std.mem.lessThan(u8, lhs.name, rhs.name);
-}
-
-/// Counts the number of `/` and returns nesting level
-fn countPathDepth(path: []const u8) !u8 {
-    var level: u8 = 0;
-    for (path) |char| {
-        if (char == '/') {
-            level += 1;
-        }
-    }
-
-    return level;
 }
 
 fn repeatString(allocator: std.mem.Allocator, string: []const u8, multiplier: usize) ![]const u8 {
